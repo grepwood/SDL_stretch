@@ -1,0 +1,83 @@
+<html><head><title> SDL_stretch - Stretch Functions For SDL </title>
+<body color="#414141"  bgcolor="#eee8c0"
+      alink="#414141" vlink="#414141" link="#414141" text="#414141">
+<table border="0" width="100%" cellpadding="10">
+<tr valign="top"><td bgcolor="#eee8c0">
+<p align=center>
+<img alt="SDL now!" border=0 height=50
+src="http://libsdl.org/images/SDL_now.gif" width=88></a>
+</p>
+<center><!--VERSION--></center>
+<dl>
+<dt><big>&nbsp;<strong>Hosted By</strong></big>
+<dd><a href="http://sourceforge.net/projects/sdl-stretch">
+       sourceforge.net</a></dd>
+</dl>
+
+<dl>
+<dt><big>&nbsp;<strong>Documentation</strong></big>
+<dd><a href="sdlstretch.html">Functions Overview</a></dd>
+<dd><a href="man/index.html">Functions Manual</a></dd>
+<dd>...</dd>
+<dd>...</dd>
+<dd>...</dd>
+<dd>...</dd>
+</dl>
+
+<dl>
+<dt><big>&nbsp;<strong>Download</strong></big>
+<dd><a href="http://sourceforge.net/projects/sdl-stretch">
+    Tarballs</a></dd>
+<dd>...</dd>
+</dl>
+
+<dl>
+<dt><big>&nbsp;<strong>Links</strong></big>
+<dd><a href="http://sourceforge.net/projects/sdl-stretch">
+    Project home</a></dd>
+<dd><a href="http://libsdl.org">
+    SDL home</a></dd>
+<dd>...</dd>
+</dl>
+
+<p>&nbsp;</p>
+<p align="right"> (C) Guido Draheim <br>
+    <small>guidod<small>@</small>gmx.de</small>
+</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</td><td  bgColor="#fff8dc">
+<p>&nbsp;</p>
+    <h1> SDL_stretch &nbsp;-&nbsp; <em>Stretch Functions For SDL</em> </h2>
+<p>&nbsp;</p>
+
+<p><big><blockquote><em>
+While hacking on UAE (the unix amiga emulator) I did develop a few
+stretching routines. I have been asking on the SDL mailing list for any
+prior art but it seems that no one did wrap such routines into a
+library part that can be reused everywhere. Other projects are
+just game SDKs which tend to wrap such routines it into their
+own framework - instead of using vanilla SDL surface. Also, there
+are only rare pieces of assembler optimized routines. I took some
+of these as hints and created my own set of highly optimized routines
+pumped up with assembler - stretch-and-blit routines for SDL on steroids.
+</em></big></blockquote></p>
+
+<b>News:</b>
+<blockquote>In version 0.3.0 the assembly code generation for i386 was extended to
+support also x86_64 (amd64) with native code. However the support did require a
+little incompatibility as all 64bit unices are set on a non-executeable data (and
+heap) segment such that an allocation with memalign/mprotect must be used now.</blockquote>
+<blockquote>Additionally the traditional code generation does also know about an
+interpreted mode for platforms that are not yet support by native machine code
+definitions. That should make build servers happy although it's not an
+optimal solution - it can not be as quite as fast as on-demand machine code.</blockquote>
+<blockquote>Last not least, there is a new example program that is derived from
+the SDL parallax-2 demo (http://olofson.net/examples.html). The SOFTSTRETCH-ifdefs
+will guide you how to make your SDL window resizeable with the help of SDL_stretch.
+That demo program might also help with porting the software to other CPU types.</blockquote>
+
+</td><td>&nbsp;
+</td></tr></table>
+</body></html>

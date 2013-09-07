@@ -1,0 +1,177 @@
+typedef struct tColorRGBA {
+	Uint8 r;
+	Uint8 g;
+	Uint8 b;
+	Uint8 a;
+} tColorRGBA;
+
+int SDL_StretchBlt( SDL_Surface *src , SDL_Rect *aSrcRect , SDL_Surface *dst , SDL_Rect *aDstRect , const bool smooth )
+{
+	XRect	srcRect( 0 , 0 , src->w , src->h );
+	XRect	dstRect( 0 , 0 , dst->w , dst->h );
+	
+	if( aSrcRect )
+		srcRect = *aSrcRect;
+	if( aDstRect )
+		dstRect = *aDstRect;
+
+	if( srcRect.Width() == dstRect.Width() && srcRect.Height() == dstRect.Height() )
+		return SDL_BlitSurface( src , &srcRect , dst , &dstRect );
+
+	SDL_LockSurface( src );
+	SDL_LockSurface( dst );
+	int	sx = (int) (65536.0 * (float) srcRect.Width() / (float) dstRect.Width());
+	int	sy = (int) (65536.0 * (float) srcRect.Height() / (float) dstRect.Height());
+
+	int	*sax = new int[ (dstRect.Width() + 1) ];
+	memset( sax , 0 , (dstRect.Width() + 1) * sizeof(int) );
+	int	*say = new int[ (dstRect.Height() + 1) ];
+	memset( say , 0 , (dstRect.Height() + 1) * sizeof(int) );
+
+    /*	Precalculate row increments */
+    int	csx = 0;
+    int	*csax = sax;
+    for( int x = 0 ; x <= dstRect.Width() ; x++ ) 
+	{
+		*csax = csx;
+		csax++;
+		csx &= 0xffff;
+		csx += sx;
+    }
+    int	csy = 0;
+    int	*csay = say;
+    for( int y = 0 ; y <= dstRect.Height(); y++ ) 
+	{
+		*csay = csy;
+		csay++;
+		csy &= 0xffff;
+		csy	+= sy;
+    }
+
+    /* Pointer setup */
+	tColorRGBA *csp = (tColorRGBA *) src->pixels;
+    tColorRGBA *dp = (tColorRGBA *) dst->pixels;
+    int	dgap = dst->pitch - dstRect.Width() * 4;
+    int	sgap = src->pitch - srcRect.Width() * 4;
+
+	csp = (tColorRGBA *) ((Uint8 *) csp + src->pitch * srcRect.y);
+	csp += srcRect.x;
+	dp = (tColorRGBA *) ((Uint8 *)dp + dst->pitch * dstRect.y);
+	dp += dstRect.x;
+	csay = say;
+
+	//	Case of smoothing...
+	if( smooth )
+	{
+
+		int	ex, ey, t1, t2, sstep;
+		tColorRGBA *c00, *c01, *c10, *c11;
+		for( y = 0 ; y < dstRect.Height() ; y++ )
+		{
+			/* Setup color source pointers */
+			c00 = csp;
+			c01 = csp;
+			c01++;
+			c10 = (tColorRGBA *) ((Uint8 *) csp + src->pitch);
+			c11 = c10;
+			c11++;
+			csax = sax;
+			for( x = 0 ; x < dstRect.Width() ; x++ )  
+			{
+				/* Interpolate colors */
+				ex = (*csax & 0xffff);
+				ey = (*csay & 0xffff);
+				t1 = ((((c01->r - c00->r) * ex) >> 16) + c00->r) & 0xff;
+				t2 = ((((c11->r - c10->r) * ex) >> 16) + c10->r) & 0xff;
+				dp->r = (((t2 - t1) * ey) >> 16) + t1;
+				t1 = ((((c01->g - c00->g) * ex) >> 16) + c00->g) & 0xff;
+				t2 = ((((c11->g - c10->g) * ex) >> 16) + c10->g) & 0xff;
+				dp->g = (((t2 - t1) * ey) >> 16) + t1;
+				t1 = ((((c01->b - c00->b) * ex) >> 16) + c00->b) & 0xff;
+				t2 = ((((c11->b - c10->b) * ex) >> 16) + c10->b) & 0xff;
+				dp->b = (((t2 - t1) * ey) >> 16) + t1;
+				t1 = ((((c01->a - c00->a) * ex) >> 16) + c00->a) & 0xff;
+				t2 = ((((c11->a - c10->a) * ex) >> 16) + c10->a) & 0xff;
+				dp->a = (((t2 - t1) * ey) >> 16) + t1;
+
+				/* Advance source pointers */
+				csax++;
+				sstep = (*csax >> 16);
+				c00 += sstep;
+				c01 += sstep;
+				c10 += sstep;
+				c11 += sstep;
+				
+				/* Advance destination pointer */
+				dp++;
+			}
+			/* Advance source pointer */
+			csay++;
+			csp = (tColorRGBA *) ((Uint8 *) csp + (*csay >> 16) * src->pitch);
+			
+			/* Advance destination pointers */
+			dp = (tColorRGBA *) ((Uint8 *) dp + dgap);
+		}
+	}
+	else
+	{
+		/*	Non-Interpolating Zoom */
+		for( y = 0 ; y < dstRect.Height() ; y++ ) 
+		{
+			tColorRGBA *sp = csp;
+
+			csax = sax;
+			for( x = 0 ; x < dstRect.Width() ; x++ )  
+			{
+				/*	Draw */
+				*dp = *sp;
+			
+				/*	Advance source pointers */
+				csax++;
+				sp += (*csax >> 16);
+			
+				/* Advance destination pointer */
+				dp++;
+			}
+			/* Advance source pointer */
+			csay++;
+			csp = (tColorRGBA *) ((Uint8 *) csp + (*csay >> 16) * src->pitch);
+			
+			/* Advance destination pointers */
+			dp = (tColorRGBA *) ((Uint8 *) dp + dgap);
+		}
+	}
+	delete [] sax;
+	delete [] say;
+
+	SDL_SetAlpha( dst , SDL_SRCALPHA , 255 );
+	
+	SDL_UnlockSurface( src );
+	SDL_UnlockSurface( dst );
+
+	return 0;
+}
+
+SDL_Surface *NewSurface( const int w , const int h , SDL_Surface *sfc )
+{
+	SDL_Surface	*ans;
+
+	if( sfc )
+	{
+		SDL_Surface	*d = SDL_CreateRGBSurface( SDL_SWSURFACE , w , h , sfc->format->BitsPerPixel , sfc->format->Rmask , sfc->format->Gmask , sfc->format->Bmask , sfc->format->Amask );
+		ans = SDL_DisplayFormat( d );
+		SDL_FreeSurface( d );
+		SDL_SetColorKey( ans , SDL_SRCCOLORKEY | SDL_RLEACCEL , sfc->format->colorkey );
+	}
+	else
+	{
+		SDL_Surface	*d = SDL_CreateRGBSurface( SDL_SWSURFACE , w , h , 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 );
+		ans = SDL_DisplayFormat( d );
+		SDL_FreeSurface( d );
+		SDL_SetColorKey( ans , SDL_SRCCOLORKEY | SDL_RLEACCEL , 0x00ff00ff );
+	}
+	SDL_SetAlpha( ans , SDL_SRCALPHA , 255 );
+
+	return ans;
+}
+
