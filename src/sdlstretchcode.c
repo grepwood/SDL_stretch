@@ -44,8 +44,8 @@ static char rcsid =
 #	if defined SDL_STRETCH_I386 || defined SDL_STRETCH_X86_64
 #		include "asm/sdlstretch_x86.h"
 #	endif
-#	if defined SDL_STRETCH_ARMV7
-#		include "asm/sdlstretch_armv7.h"
+#	if defined SDL_STRETCH_ARM
+#		include "asm/sdlstretch_arm.h"
 #	endif
 #endif
 

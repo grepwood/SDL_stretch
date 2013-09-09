@@ -1,6 +1,7 @@
 /*
     SDL_stretch - Stretch Functions For The Simple DirectMedia Layer
     Copyright (C) 2003 Guido Draheim
+    Copyright (C) 2013 Michael Dec
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -17,6 +18,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
     Guido Draheim, guidod@gmx.de
+    Michael Dec, grepwood@sucs.org
 */
 
 #ifndef _SDL_STRETCHASM_IMPLEMENTATION_
@@ -25,21 +27,27 @@
 /* development header - do not use */
 
 #if (defined(WIN32) && !defined(_M_ALPHA) && !defined(_WIN32_WCE))
-#define SDL_STRETCH_I386
-#define SDL_STRETCH_MASM
-#define SDL_STRETCH_USE_ASM
+#	define SDL_STRETCH_I386
+#	define SDL_STRETCH_MASM
+#	define SDL_STRETCH_USE_ASM
 #endif
 
 #if  defined(__i386__) && defined(__GNUC__)
-#define SDL_STRETCH_I386
-#define SDL_STRETCH_GAS
-#define SDL_STRETCH_USE_ASM
+#	define SDL_STRETCH_I386
+#	define SDL_STRETCH_GAS
+#	define SDL_STRETCH_USE_ASM
 #endif
 
 #if  defined(__x86_64__) && defined(__GNUC__)
-#define SDL_STRETCH_X86_64
-#define SDL_STRETCH_GAS
-#define SDL_STRETCH_USE_ASM
+#	define SDL_STRETCH_X86_64
+#	define SDL_STRETCH_GAS
+#	define SDL_STRETCH_USE_ASM
+#endif
+
+#if defined(__arm__) && defined(__GNUC__)
+#	define SDL_STRETCH_ARM
+#	define SDL_STRETCH_GAS
+#	define SDL_STRETCH_USE_ASM
 #endif
 
 #if defined SDL_STRETCH_I386 && defined SDL_STRETCH_MASM
@@ -68,7 +76,7 @@ __asm {\
 }
 #endif
 
-#if defined SDL_STRETCH_ARMV7 && defined SDL_STRETCH_MASM
+#if defined SDL_STRETCH_ARM && defined SDL_STRETCH_MASM
 #define SDL_STRETCH_CALL(code, srcp, dstp) \
 __asm {\
 	push r4 ;\
@@ -93,7 +101,7 @@ __asm__ __volatile__ ("call *%%rax" \
                       :: "S" (dstp), "D" (srcp), "a" (code));
 #endif
 
-#if defined SDL_STRETCH_ARMV7 && defined SDL_STRETCH_GAS
+#if defined SDL_STRETCH_ARM && defined SDL_STRETCH_GAS
 #define SDL_STRETCH(call, srcp, dstp) \
 __asm__ __volatile__ ("call *%%r0" \
 			:: "S" (dstp), "D" (srcp), "a" (code));
