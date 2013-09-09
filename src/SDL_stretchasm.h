@@ -68,6 +68,19 @@ __asm {\
 }
 #endif
 
+#if defined SDL_STRETCH_ARMV7 && defined SDL_STRETCH_MASM
+#define SDL_STRETCH_CALL(code, srcp, dstp) \
+__asm {\
+	push r4 ;\
+	push r5 ;\
+	mov r4, dstp ;\
+	mov r5, srcp ;\
+	call dword ptr code ;\
+	pop r5 ;\
+	pop r4 ;\
+}
+#endif
+
 #if defined SDL_STRETCH_I386 && defined SDL_STRETCH_GAS
 #define SDL_STRETCH_CALL(code, srcp, dstp) \
 __asm__ __volatile__ ("call *%%eax" \
@@ -78,6 +91,12 @@ __asm__ __volatile__ ("call *%%eax" \
 #define SDL_STRETCH_CALL(code, srcp, dstp) \
 __asm__ __volatile__ ("call *%%rax" \
                       :: "S" (dstp), "D" (srcp), "a" (code));
+#endif
+
+#if defined SDL_STRETCH_ARMV7 && defined SDL_STRETCH_GAS
+#define SDL_STRETCH(call, srcp, dstp) \
+__asm__ __volatile__ ("call *%%r0" \
+			:: "S" (dstp), "D" (srcp), "a" (code));
 #endif
 
 #if defined USE_ASM_STRETCH && ! defined SDL_STRETCH_USE_ASM
